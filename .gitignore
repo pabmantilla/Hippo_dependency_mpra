@@ -1,0 +1,27 @@
+# Model weights & training state
+models/**/*.pt
+models/**/training_state.json
+
+# Non-best model configs (best models already tracked)
+models/HepG2_v6_do06/
+models/HepG2_v6_do075/
+models/K562_v6_do03/
+models/K562_v6_do06/
+models/WTC11_v6_do03/
+models/WTC11_v6_do06/
+
+# Large data files
+data/*.h5
+data/*.hdf5
+data/*.parquet
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtualenv
+Hippo_agft_venv/
