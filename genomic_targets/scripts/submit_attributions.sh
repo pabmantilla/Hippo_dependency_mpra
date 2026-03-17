@@ -83,57 +83,47 @@ if [[ "${1:-}" == "merge" ]]; then
 fi
 
 # --- Submit array ---
-mkdir -p "${SHARD_DIR}"
+LOG_DIR="${REPO}/genomic_targets/scripts/slurm_logs"
+mkdir -p "${SHARD_DIR}" "${LOG_DIR}"
 
 JOBSCRIPT=$(mktemp /tmp/attr_shard_XXXX.sbatch)
-cat > "${JOBSCRIPT}" <<'SBATCH_EOF'
+cat > "${JOBSCRIPT}" <<SBATCH_EOF
 #!/bin/bash
 #SBATCH --job-name=deeplift_shard
-#SBATCH --partition=bio_ai
+#SBATCH --partition=gpuq
 #SBATCH --qos=bio_ai
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=4:00:00
-#SBATCH --output=SHARD_DIR_PLACEHOLDER/slurm_%A_%a.out
+#SBATCH --output=${LOG_DIR}/slurm_%A_%a.out
 
 set -euo pipefail
 
-# Decode array task -> (cell_type, shard_idx)
-CT_IDX=$(( SLURM_ARRAY_TASK_ID / N_SHARDS_PLACEHOLDER ))
-SHARD_IDX=$(( SLURM_ARRAY_TASK_ID % N_SHARDS_PLACEHOLDER ))
+N_SHARDS=${N_SHARDS}
+CT_IDX=\$(( SLURM_ARRAY_TASK_ID / N_SHARDS ))
+SHARD_IDX=\$(( SLURM_ARRAY_TASK_ID % N_SHARDS ))
 
-CELL_TYPES_ARR=(CELL_TYPES_PLACEHOLDER)
-MODEL_NAMES_ARR=(MODEL_NAMES_PLACEHOLDER)
+CELL_TYPES_ARR=(${CELL_TYPES[*]})
+MODEL_NAMES_ARR=(${MODEL_NAMES[*]})
 
-CT="${CELL_TYPES_ARR[$CT_IDX]}"
-MODEL="${MODEL_NAMES_ARR[$CT_IDX]}"
+CT="\${CELL_TYPES_ARR[\$CT_IDX]}"
+MODEL="\${MODEL_NAMES_ARR[\$CT_IDX]}"
 
-echo "Task ${SLURM_ARRAY_TASK_ID}: ${CT} shard ${SHARD_IDX}/${N_SHARDS_PLACEHOLDER}"
+echo "Task \${SLURM_ARRAY_TASK_ID}: \${CT} shard \${SHARD_IDX}/\${N_SHARDS}"
 
-PYTHON_PLACEHOLDER EIGEN_PLACEHOLDER shard \
-    --csv CSV_PLACEHOLDER \
-    --cell-type "${CT}" \
-    --model-name "${MODEL}" \
-    --output-dir SHARD_DIR_PLACEHOLDER \
-    --shard-idx "${SHARD_IDX}" \
-    --n-shards N_SHARDS_PLACEHOLDER \
-    --weights-path WEIGHTS_PLACEHOLDER \
-    --results-dir RESULTS_DIR_PLACEHOLDER \
-    --n-shuffles 50 \
+${PYTHON} ${EIGEN} shard \\
+    --csv ${CSV} \\
+    --cell-type "\${CT}" \\
+    --model-name "\${MODEL}" \\
+    --output-dir ${SHARD_DIR} \\
+    --shard-idx "\${SHARD_IDX}" \\
+    --n-shards \${N_SHARDS} \\
+    --weights-path ${WEIGHTS} \\
+    --results-dir ${RESULTS_DIR} \\
+    --n-shuffles 50 \\
     --batch-size 50
 SBATCH_EOF
-
-# Fill in placeholders
-sed -i "s|SHARD_DIR_PLACEHOLDER|${SHARD_DIR}|g" "${JOBSCRIPT}"
-sed -i "s|N_SHARDS_PLACEHOLDER|${N_SHARDS}|g" "${JOBSCRIPT}"
-sed -i "s|CELL_TYPES_PLACEHOLDER|${CELL_TYPES[*]}|g" "${JOBSCRIPT}"
-sed -i "s|MODEL_NAMES_PLACEHOLDER|${MODEL_NAMES[*]}|g" "${JOBSCRIPT}"
-sed -i "s|EIGEN_PLACEHOLDER|${EIGEN}|g" "${JOBSCRIPT}"
-sed -i "s|CSV_PLACEHOLDER|${CSV}|g" "${JOBSCRIPT}"
-sed -i "s|WEIGHTS_PLACEHOLDER|${WEIGHTS}|g" "${JOBSCRIPT}"
-sed -i "s|RESULTS_DIR_PLACEHOLDER|${RESULTS_DIR}|g" "${JOBSCRIPT}"
-sed -i "s|PYTHON_PLACEHOLDER|${PYTHON}|g" "${JOBSCRIPT}"
 
 echo "Submitting ${N_TASKS} array tasks (${#CELL_TYPES[@]} cell types x ${N_SHARDS} shards)"
 echo "Jobscript: ${JOBSCRIPT}"
