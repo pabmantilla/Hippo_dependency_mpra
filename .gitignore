@@ -19,6 +19,9 @@ data/*.parquet
 genomic_targets/data/attr_shards/
 genomic_targets/data/*.npz
 
+# SLURM logs
+genomic_targets/scripts/slurm_logs/
+
 # Jupyter checkpoints
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
