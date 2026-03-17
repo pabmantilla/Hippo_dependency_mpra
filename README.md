@@ -24,7 +24,7 @@ genomic_targets/
 
 ## Models
 
-Best models per cell line (v6 two-step fine-tuned AlphaGenome):
+Finetuned alphagenome models on held-out joint library from Agarwal et al. 2025:
 
 | Cell line | Model | Pearson r |
 |-----------|-------|-----------|
