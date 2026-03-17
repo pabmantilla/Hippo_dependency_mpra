@@ -15,6 +15,10 @@ data/*.h5
 data/*.hdf5
 data/*.parquet
 
+# Attribution maps (shards + merged)
+genomic_targets/data/attr_shards/
+genomic_targets/data/*.npz
+
 # Jupyter checkpoints
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
