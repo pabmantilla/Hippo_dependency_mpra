@@ -1,0 +1,28 @@
+{
+  "hp": {
+    "cell_type": "HepG2",
+    "batch_size": 32,
+    "num_epochs": 100,
+    "learning_rate": 0.001,
+    "weight_decay": 1e-06,
+    "center_bp": 256,
+    "pooling_type": "flatten",
+    "nl_size": 1024,
+    "dropout": 0.3,
+    "activation": "relu",
+    "early_stopping": 5,
+    "random_shift": true,
+    "random_shift_likelihood": 0.5,
+    "reverse_complement": true,
+    "sequence_length": 384,
+    "val_eval_frequency": 4,
+    "stage2_lr": 1e-05,
+    "stage2_epochs": 50,
+    "stage2_patience": 5
+  },
+  "config": null,
+  "cache_embeddings": false,
+  "skip_stage2": false,
+  "weights": "/grid/wsbs/home_norepl/pmantill/LentiMPRA_mcs/alphagenome_torch_MPRAMoCon/weights/model_fold_0.safetensors",
+  "data_dir": "/grid/wsbs/home_norepl/pmantill/LentiMPRA_mcs/LentiMoCon/test_run_lenti_data"
+}
