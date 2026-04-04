@@ -32,3 +32,17 @@ __pycache__/
 
 # Virtualenv
 Hippo_agft_venv/
+
+# Claude
+.claude/
+CLAUDE.md
+
+# Pickle files
+*.pkl
+*.pickle
+
+# Model files
+*.pt
+*.pth
+*.onnx
+*.safetensors
