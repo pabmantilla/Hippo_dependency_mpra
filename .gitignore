@@ -43,6 +43,7 @@ CLAUDE.md
 
 # Model files
 *.pt
+*.sh
 *.pth
 *.onnx
 *.safetensors
