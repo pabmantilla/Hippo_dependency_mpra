@@ -1,58 +1,32 @@
 # Hippo Dependency MPRA
 
-Using *in silico* MPRA experiments to dissect **Hippo pathway dependency** in cancer.
+Dissecting cell-type-specific regulatory grammar between HepG2 and K562 using LentiMPRA + AlphaGenome models.
 
 ## Overview
 
-Deep learning models trained on lentiMPRA data predict enhancer activity across cell lines (K562, HepG2, WTC11). We leverage these models to run virtual MPRA screens on the joint library (~57k sequences) and decompose regulatory logic across cell types using eigen-interactions of DeepLIFT/SHAP attribution maps.
+Virtual MPRA screens on ~57k enhancer sequences with eigen-interaction decomposition of cross-cell-type DeepLIFT/SHAP attributions to identify shared vs. cell-type-specific regulatory modes and higher-order epistasis via SHAPIQ.
 
 ## Structure
 
 ```
-models/                     Fine-tuned AlphaGenome heads per cell line & dropout
-data/                       Joint library sequences and activity measurements
-eigen-interactions/         Submodule: eigen-decomposition of cross-cell-type attributions
+models/                    Fine-tuned AlphaGenome models (K562, HepG2, WTC11)
+data/                      Joint library sequences
+eigen-interactions/        Submodule: eigen-decomposition of attributions
 genomic_targets/
-  scripts/
-    validate_models.ipynb           Model validation (Pearson r across cell lines)
-    eigen_interactions_filtering.ipynb  Load attributions, eigendecompose, filter
-    submit_attributions.sh          SLURM array job pipeline for DeepLIFT/SHAP
-  data/
-    attr_shards/                    Per-cell-type attribution shards (.npz)
-    deeplift_attributions.npz       Merged hypothetical attribution maps
+  scripts/                 Model validation, attribution pipeline, eigen-filtering
+  results/                 DeepLIFT attributions, eigen-interactions results
+syntax_SHAPIQ/
+  scripts/                 Necessity/sufficiency SHAPIQ interaction tests
+virtual_perturbations/     Combinatorial perturbation screens
 ```
 
-## Models
+## Key Analyses
 
-Finetuned alphagenome models on held-out joint library from Agarwal et al. 2025:
+- **Model validation**: Pearson r on held-out joint library (K562: 0.89, HepG2: 0.88, WTC11: 0.85)
+- **Eigen decomposition**: Cross-cell-type covariance of attributions → motif syntax enrichment
+- **Perturbation tests**: Dinucleotide-shuffle KO/KI to measure motif functional importance
+- **SHAPIQ interactions**: Higher-order epistasis via Shapley Interaction Indices
 
-| Cell line | Model | Pearson r |
-|-----------|-------|-----------|
-| K562 | K562_v6_do075 | 0.8915 |
-| HepG2 | HepG2_v6_do03 | 0.8750 |
-| WTC11 | WTC11_v6_do075 | 0.8457 |
+## Dependencies
 
-## Attribution Pipeline
-
-DeepLIFT/SHAP attributions (50 dinucleotide shuffles) are computed via SLURM array jobs:
-
-```bash
-bash genomic_targets/scripts/submit_attributions.sh test    # test 1 seq
-bash genomic_targets/scripts/submit_attributions.sh         # submit 30 jobs (3 cell types x 10 shards)
-bash genomic_targets/scripts/submit_attributions.sh merge   # merge shards
-```
-
-Attributions are saved as hypothetical corrected maps (mean-centered, pre one-hot multiply) so all 4 nucleotide channels are preserved. Logo-ready maps are derived on load via `attr_hyp * ohe`.
-
-## Progress
-
-1. Trained v6 two-step models for K562, HepG2, and WTC11
-2. Validated predictions on the joint library
-3. Computing DeepLIFT/SHAP attributions across all 57k sequences and 3 cell lines
-4. Eigen-interaction decomposition of cross-cell-type covariance matrices
-
-## Next Steps
-
-- Eigendecompose attribution covariance to find shared vs cell-type-specific regulatory modes
-- Filter eigen-interaction results for Hippo axis regulators: TEAD1-4, AP-1 (JUN/FOS), YAP/TAZ, VGLL
-- 3D visualization of EI_1 projected onto (HepG2, K562, WTC11) coordinates
+Python 3.9+, PyTorch, tensorflow/keras. See `Hippo_agft_venv/` for pre-built venv or install via `uv` (see CLAUDE.md).
