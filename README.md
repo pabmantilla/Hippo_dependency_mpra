@@ -34,8 +34,9 @@ virtual_perturbations/
 ## Scripts
 
 ### Validation of PyTorch vs. JAX AlphaGenome models
+| Script | Purpose |
+|--------|---------|
 | `validation/validate_models.ipynb` | Validate 9 PyTorch models (3 cell types × 3 dropout rates) vs. JAX baseline |
-
 
 
 ### Characterizing MPRA library with EigenMaps (genomic_targets/)
