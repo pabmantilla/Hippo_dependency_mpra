@@ -59,7 +59,7 @@ virtual_perturbations/
 | `show_hippo_targets.ipynb` | Visualize 1,059-seq target library; HepG2 vs. K562 predictions colored by EI_1 var × ρ; top candidates with attribution logos |
 | `perturb_targets.ipynb` | Necessity/sufficiency tests on all targets (dinucleotide shuffle KO/KI, n_rep=30, max_order=3); per-motif and per-TF score distributions |
 
-### In-silico Decomposition (syntax_SHAPIQ/)
+### In-silico Decomposition (syntax_SHAPIQ/) TODO ADD SUFF SHAPIQ
 
 | Script | Purpose |
 |--------|---------|
