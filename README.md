@@ -1,16 +1,16 @@
 ## Overview
 
-Reading the genetic code is a highly chaotic, yet suprisingly robust proccess. Peterburbations to key elements of the cis- and trans- regulatory code in model organisms has allowed idnpendepnt definitions of epistatisis, robustness, espressivity, and evolbability in reference to coomplex outcomes, or phenotypes. Deep learnign has been isntrimental to tasks in regulatory genomics by learning sequence elements predictiive of fucntion in a fized trans-regulatory state.Useing e models as virtual experimental platorms allows us to pereterb in the same way as before to understand known featuer local controbution (nceccesity test -CRIPS KO) and glabnal contibution (suff test -CRISPR KD ). 
+Reading the genetic code is a highly chaotic, yet surprisingly robust process. Perturbations to key elements of the cis- and trans-regulatory code in model organisms have allowed independent definitions of epistasis, robustness, expressivity, and evolvability in reference to complex outcomes, or phenotypes. Deep learning has been instrumental to tasks in regulatory genomics by learning sequence elements predictive of function in a fixed trans-regulatory state. Using these models as virtual experimental platforms allows us to perturb in the same way as before — to understand known feature local contribution (necessity test — CRISPR KO) and global contribution (sufficiency test — CRISPR KD).
 
-In this repo applie a principled approach , EIgenMAPs, to chacterize,  focus, peterb and decompose the cisregulatory code from the mpra joiitn library. We conclude with the decomposiiton of the 'defining' signaling pathways- indpendently explaingin teh Differential dependence in the Hippo pathway, suprosingly additive nature of regulatory code when promoting trasnctiptional initaiton, and the [TBD] nature of TFs when chromatin remodling.  
+In this repo we apply a principled approach, EigenMaps, to characterize, focus, perturb, and decompose the cis-regulatory code from the MPRA joint library. We conclude with the decomposition of the 'defining' signaling pathways — independently explaining the differential dependence in the Hippo pathway, the surprisingly additive nature of regulatory code when promoting transcriptional initiation, and the combinatorial nature of TFs when chromatin remodeling.
 
 
 ## Hippo Dependency MPRA
 
-  on MPRA of ~57k enhancer sequences in HepG2 (Liver Hepatocyte-Hepatoblastoma), K562(Bone marrow Myleoid-CML), and WTC11(Skin (leg) Fibroblast-iPSC) lines.   with eigen-interaction decomposition of cross-cell-type DeepLIFT/SHAP attributions to identify shared vs. cell-type-specific regulatory modes and higher-order epistasis via SHAPIQ.
+MPRA of ~57k enhancer sequences in HepG2 (Liver Hepatocyte-Hepatoblastoma), K562 (Bone Marrow Myeloid-CML), and WTC11 (Skin Fibroblast-iPSC) lines, with eigen-interaction decomposition of cross-cell-type DeepLIFT/SHAP attributions to identify shared vs. cell-type-specific regulatory modes and higher-order epistasis via SHAPIQ.
 
 **Key metrics:**
-- EI_1 var × ρ: encodes cell-type divergence (negative = HepG2-specific, positive = shared/K562-biased)
+- EI_1 var × ρ: motif function similarity across cell types (+1 = same motifs same function, 0 = unrelated, -1 = same motifs different function)
 - Necessity/sufficiency tests: dinucleotide-shuffle KO/KI on target library
 - SHAPIQ k-SII: context-aware interaction decomposition (orders 1–4)
 
@@ -33,8 +33,8 @@ virtual_perturbations/
 
 ## Scripts
 
-### Validation of pytorch vs. jax alphagenome models
-| `validation/validate_models.ipynb` | Validate 9 PyTorch models (3 cell types × 3 dropout rates) vs JAX baseline|
+### Validation of PyTorch vs. JAX AlphaGenome models
+| `validation/validate_models.ipynb` | Validate 9 PyTorch models (3 cell types × 3 dropout rates) vs. JAX baseline |
 
 
 
@@ -42,22 +42,21 @@ virtual_perturbations/
 
 | Script | Purpose |
 |--------|---------|
-| `3d_example/eigen_interactions_filtering.ipynb` | WTC11 cells can be descibed as linear combinations of Li cells |
+| `3d_example/eigen_interactions_filtering.ipynb` | WTC11 cells can be described as linear combinations of liver cells |
 
-### Isolate mechanistic space of joint library with liver-blood basis. (genomic_targets/)
-
-| Script | Purpose |
-|--------|---------|
-| `2d_targeting/hippo_target_selection.ipynb` | Focus 57k seqs by EI ratio + importance correlation to explore describitve mecahanisms |
-
-| `2d_targeting/liver_blood_targets.ipynb` | Eigen-decompose full 57k library; EI_1/EI_2 eigenvector angles, polar histograms; identify shared vs differential mechanisms |
-
-
-### In-silico Perturbations (virtual_perterbations/)
+### Isolate mechanistic space of joint library with liver-blood basis (genomic_targets/)
 
 | Script | Purpose |
 |--------|---------|
-| `show_hippo_targets.ipynb` | Visualize 1,059-seq target library; HepG2 vs K562 predictions colored by EI_1 var × ρ; top candidates with attribution logos |
+| `2d_targeting/hippo_target_selection.ipynb` | Focus 57k seqs by EI ratio + importance correlation to explore descriptive mechanisms |
+| `2d_targeting/liver_blood_targets.ipynb` | Eigen-decompose full 57k library; EI_1/EI_2 eigenvector angles, polar histograms; identify shared vs. differential mechanisms |
+
+
+### In-silico Perturbations (virtual_perturbations/)
+
+| Script | Purpose |
+|--------|---------|
+| `show_hippo_targets.ipynb` | Visualize 1,059-seq target library; HepG2 vs. K562 predictions colored by EI_1 var × ρ; top candidates with attribution logos |
 | `perturb_targets.ipynb` | Necessity/sufficiency tests on all targets (dinucleotide shuffle KO/KI, n_rep=30, max_order=3); per-motif and per-TF score distributions |
 
 ### In-silico Decomposition (syntax_SHAPIQ/)
@@ -69,7 +68,7 @@ virtual_perturbations/
 
 ## Key Methods
 
-**EigenMap decomposition:** Cross-cell-type attribution matrices are decomposed via eigendecomposition. The first eigenvector (EI_1) captures the dominant axis of cell-type divergence; the second (EI_2) captures orthogonal variation. Sequences are scored on "var × ρ" (variance × Pearson correlation) to prioritize stable, cell-type-divergent patterns.
+**EigenMap decomposition:** Cross-cell-type attribution matrices are decomposed via eigendecomposition. The first eigenvector (EI_1) captures the dominant axis of variation in motif function across cell types; the second (EI_2) captures orthogonal variation. Sequences are scored on var × ρ (variance × Pearson correlation) to prioritize sequences where the same motifs play consistent functional roles (+1) vs. divergent roles (-1) across cell types.
 
 **SHAPIQ:** Computes exact higher-order Shapley interaction indices via sampling. Necessity tests use sequences with shuffled dinucleotide backgrounds; sufficiency tests use the original background.
 
