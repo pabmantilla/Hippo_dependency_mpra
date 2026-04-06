@@ -1,10 +1,13 @@
-# Hippo Dependency MPRA
-
-Dissecting cell-type-specific regulatory grammar between HepG2 and K562 using LentiMPRA + AlphaGenome models.
-
 ## Overview
 
-Virtual MPRA screens on ~57k enhancer sequences with eigen-interaction decomposition of cross-cell-type DeepLIFT/SHAP attributions to identify shared vs. cell-type-specific regulatory modes and higher-order epistasis via SHAPIQ.
+Reading the genetic code is a highly chaotic, yet suprisingly robust proccess. Peterburbations to key elements of the cis- and trans- regulatory code in model organisms has allowed idnpendepnt definitions of epistatisis, robustness, espressivity, and evolbability in reference to coomplex outcomes, or phenotypes. Deep learnign has been isntrimental to tasks in regulatory genomics by learning sequence elements predictiive of fucntion in a fized trans-regulatory state.Useing e models as virtual experimental platorms allows us to pereterb in the same way as before to understand known featuer local controbution (nceccesity test -CRIPS KO) and glabnal contibution (suff test -CRISPR KD ). 
+
+In this repo applie a principled approach , EIgenMAPs, to chacterize,  focus, peterb and decompose the cisregulatory code from the mpra joiitn library. We conclude with the decomposiiton of the 'defining' signaling pathways- indpendently explaingin teh Differential dependence in the Hippo pathway, suprosingly additive nature of regulatory code when promoting trasnctiptional initaiton, and the [TBD] nature of TFs when chromatin remodling.  
+
+
+## Hippo Dependency MPRA
+
+  on MPRA of ~57k enhancer sequences in HepG2 (Liver Hepatocyte-Hepatoblastoma), K562(Bone marrow Myleoid-CML), and WTC11(Skin (leg) Fibroblast-iPSC) lines.   with eigen-interaction decomposition of cross-cell-type DeepLIFT/SHAP attributions to identify shared vs. cell-type-specific regulatory modes and higher-order epistasis via SHAPIQ.
 
 **Key metrics:**
 - EI_1 var × ρ: encodes cell-type divergence (negative = HepG2-specific, positive = shared/K562-biased)
@@ -30,23 +33,34 @@ virtual_perturbations/
 
 ## Scripts
 
-### genomic_targets/
+### Validation of pytorch vs. jax alphagenome models
+| `validation/validate_models.ipynb` | Validate 9 PyTorch models (3 cell types × 3 dropout rates) vs JAX baseline|
+
+
+
+### Characterizing MPRA library with EigenMaps (genomic_targets/)
 
 | Script | Purpose |
 |--------|---------|
-| `validation/validate_models.ipynb` | Validate 9 PyTorch models (3 cell types × 3 dropout rates) vs JAX baseline; Pearson r, Spearman ρ, MSE |
-| `2d_targeting/liver_blood_targets.ipynb` | Eigen-decompose full 57k library; EI_1/EI_2 eigenvector angles, polar histograms; identify shared vs differential mechanisms |
-| `2d_targeting/hippo_target_selection.ipynb` | Filter 57k seqs by EI ratio + importance correlation; focus on key TF motifs (HNF, STAT, AP1, TEA) for experimental targets |
-| `3d_example/eigen_interactions_filtering.ipynb` | Example: motif annotation with JASPAR, high-ratio vs low-ratio sequence logos |
+| `3d_example/eigen_interactions_filtering.ipynb` | WTC11 cells can be descibed as linear combinations of Li cells |
 
-### virtual_perturbations/
+### Isolate mechanistic space of joint library with liver-blood basis. (genomic_targets/)
+
+| Script | Purpose |
+|--------|---------|
+| `2d_targeting/hippo_target_selection.ipynb` | Focus 57k seqs by EI ratio + importance correlation to explore describitve mecahanisms |
+
+| `2d_targeting/liver_blood_targets.ipynb` | Eigen-decompose full 57k library; EI_1/EI_2 eigenvector angles, polar histograms; identify shared vs differential mechanisms |
+
+
+### In-silico Perturbations (virtual_perterbations/)
 
 | Script | Purpose |
 |--------|---------|
 | `show_hippo_targets.ipynb` | Visualize 1,059-seq target library; HepG2 vs K562 predictions colored by EI_1 var × ρ; top candidates with attribution logos |
 | `perturb_targets.ipynb` | Necessity/sufficiency tests on all targets (dinucleotide shuffle KO/KI, n_rep=30, max_order=3); per-motif and per-TF score distributions |
 
-### syntax_SHAPIQ/
+### In-silico Decomposition (syntax_SHAPIQ/)
 
 | Script | Purpose |
 |--------|---------|
