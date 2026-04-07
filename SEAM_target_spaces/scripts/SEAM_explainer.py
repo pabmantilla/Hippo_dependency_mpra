@@ -12,6 +12,7 @@ Requires: hippo_seam_venv (seam-nn installed --no-deps, no TF needed with gpu=Fa
 
 import argparse
 import pickle
+import gc
 import numpy as np
 import h5py
 from pathlib import Path
@@ -99,15 +100,23 @@ def process_sequence(seq_idx, condition, cell_type):
     bg_scale = meta.background_scaling[ref_cluster] if meta.background_scaling is not None else 1.0
     foreground_scaled = ref_cluster_avg - bg_scale * meta.background
 
-    # Save outputs
-    np.save(seq_dir / 'foreground_scaled.npy', foreground_scaled)
-    np.save(seq_dir / 'average_background.npy', meta.background)
-    np.save(seq_dir / 'average_background_scaled.npy', bg_scale * meta.background)
-    np.save(seq_dir / 'wt_attribution.npy', attributions[0])
-    np.save(seq_dir / 'ref_cluster_avg.npy', ref_cluster_avg)
-    np.save(seq_dir / 'cluster_labels.npy', cluster_labels)
+    # Save outputs (write to tmp, rename to avoid corrupt partial writes)
+    for name, arr in [
+        ('foreground_scaled', foreground_scaled),
+        ('average_background', meta.background),
+        ('average_background_scaled', bg_scale * meta.background),
+        ('wt_attribution', attributions[0]),
+        ('ref_cluster_avg', ref_cluster_avg),
+        ('cluster_labels', cluster_labels),
+    ]:
+        tmp = seq_dir / f'.{name}_tmp'
+        np.save(tmp, arr)  # writes .{name}_tmp.npy
+        (seq_dir / f'.{name}_tmp.npy').rename(seq_dir / f'{name}.npy')
 
     print(f"    bg_scale={bg_scale:.4f}, ref_cluster={ref_cluster}")
+
+    del x_mut, wt_seq, predictions, attributions, clusterer, compiler, mave_df, meta
+    gc.collect()
 
 
 def main():
@@ -134,8 +143,13 @@ def main():
         condition = row['condition']
         seq_dir = OUT_DIR / ct / str(seq_idx)
 
-        if (seq_dir / 'foreground_scaled.npy').exists():
-            continue
+        fg_path = seq_dir / 'foreground_scaled.npy'
+        if fg_path.exists():
+            try:
+                np.load(fg_path)
+                continue
+            except:
+                pass  # corrupt, recompute
 
         attr_path = ATTR_DIR / ct / f"{condition}_{seq_idx}.h5"
         if not attr_path.exists():
