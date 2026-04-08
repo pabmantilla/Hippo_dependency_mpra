@@ -57,6 +57,6 @@ syntax_SHAPIQ/                  Higher-order interaction decomposition
 
 **SHAPIQ:** Computes exact higher-order Shapley interaction indices via sampling. Necessity tests use sequences with shuffled dinucleotide backgrounds; sufficiency tests use the original background.
 
-**SEAM:** Surrogate Epistasis Attribution Maps. Random mutagenesis + DeepSHAP attributions on mutant libraries, clustered and decomposed via MetaExplainer into foreground (motif-driven) and background (context-driven) components. Separates the signal that matters from the signal that doesn't.
+**SEAM:** SEAM (Systematic Explanation of Attribution-based Mechanisms) consists of creating mutagenisis ibraries, computing attribution maps, clustering on attribution maps, and disentangling via MetaExplainer into foreground (sensitive to mutagenisis) and background (robust to mutagenisis) components.
 
 **Target library:** 1,059 sequences selected by high EI_1 ratio, correlated importance, and TF motif presence. Includes both HepG2-biased and K562-biased candidates for experimental validation.
