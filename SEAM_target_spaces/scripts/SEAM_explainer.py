@@ -100,6 +100,11 @@ def process_sequence(seq_idx, condition, cell_type):
     bg_scale = meta.background_scaling[ref_cluster] if meta.background_scaling is not None else 1.0
     foreground_scaled = ref_cluster_avg - bg_scale * meta.background
 
+    # Per-cluster average maps
+    cluster_maps = np.stack([
+        np.mean(meta.get_cluster_maps(k), axis=0) for k in range(N_CLUSTERS)
+    ])  # (N_CLUSTERS, 230, 4)
+
     # Save outputs (write to tmp, rename to avoid corrupt partial writes)
     for name, arr in [
         ('foreground_scaled', foreground_scaled),
@@ -108,6 +113,8 @@ def process_sequence(seq_idx, condition, cell_type):
         ('wt_attribution', attributions[0]),
         ('ref_cluster_avg', ref_cluster_avg),
         ('cluster_labels', cluster_labels),
+        ('cluster_maps', cluster_maps),
+        ('ref_cluster_idx', np.array(ref_cluster)),
     ]:
         tmp = seq_dir / f'.{name}_tmp'
         np.save(tmp, arr)  # writes .{name}_tmp.npy
@@ -143,10 +150,10 @@ def main():
         condition = row['condition']
         seq_dir = OUT_DIR / ct / str(seq_idx)
 
-        fg_path = seq_dir / 'foreground_scaled.npy'
-        if fg_path.exists():
+        check_path = seq_dir / 'cluster_maps.npy'
+        if check_path.exists():
             try:
-                np.load(fg_path)
+                np.load(check_path)
                 continue
             except:
                 pass  # corrupt, recompute
