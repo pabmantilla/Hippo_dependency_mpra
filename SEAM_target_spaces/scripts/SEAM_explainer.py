@@ -114,6 +114,7 @@ def process_sequence(seq_idx, condition, cell_type):
         ('ref_cluster_avg', ref_cluster_avg),
         ('cluster_labels', cluster_labels),
         ('cluster_maps', cluster_maps),
+        ('cluster_backgrounds', meta.cluster_backgrounds),
         ('ref_cluster_idx', np.array(ref_cluster)),
     ]:
         tmp = seq_dir / f'.{name}_tmp'
@@ -150,7 +151,7 @@ def main():
         condition = row['condition']
         seq_dir = OUT_DIR / ct / str(seq_idx)
 
-        check_path = seq_dir / 'cluster_maps.npy'
+        check_path = seq_dir / 'cluster_backgrounds.npy'
         if check_path.exists():
             try:
                 np.load(check_path)
