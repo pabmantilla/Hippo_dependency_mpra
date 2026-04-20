@@ -16,14 +16,19 @@ MPRA of ~57k enhancer sequences in HepG2 (Liver Hepatocyte-Hepatoblastoma), K562
 
 ## Structure
 
+Shared inputs:
 ```
 models/                         Fine-tuned AlphaGenome models (K562, HepG2, WTC11)
 data/                           Joint library sequences
 eigen-interactions/             Submodule: EigenMap class for attribution decomposition
-genomic_targets/                Eigen decomposition & target selection
-SEAM_target_spaces/             SEAM foreground/background separation on targets
-virtual_perturbations/          Necessity/sufficiency perturbation screens
-syntax_SHAPIQ/                  Higher-order interaction decomposition
+```
+
+Pipeline (flow: isolate → explain → perturb → decompose):
+```
+genomic_targets/                1. Eigen decomposition & focus target selection
+SEAM_target_spaces/             2. SEAM foreground/background separation on focus lib
+virtual_perturbations/          3. Necessity/sufficiency perturbation screens
+syntax_SHAPIQ/                  4. Higher-order interaction decomposition
 ```
 
 ## Experiments
