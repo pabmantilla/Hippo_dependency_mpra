@@ -1,6 +1,8 @@
 # Model weights & training state
 models/**/*.pt
 models/**/training_state.json
+weights/
+training/results/
 
 # Non-best model configs (best models already tracked)
 models/HepG2_v6_do06/
