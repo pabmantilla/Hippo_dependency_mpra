@@ -49,3 +49,12 @@ CLAUDE.md
 *.pth
 *.onnx
 *.safetensors
+
+# Large outputs / data dirs
+SEAM_target_spaces/results/
+SEAM_target_spaces/interp/final_figs/
+alphagenome-pytorch/
+data/full_joint_mpra/
+genomic_targets/data/
+memory/
+genomic_targets/scripts/2d_diff_call/scripts/logs/

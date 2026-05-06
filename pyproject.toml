@@ -1,0 +1,17 @@
+[project]
+name = "hippo-dependency-mpra"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "finemo",
+    "pandas>=3.0.2",
+    "torch==2.5.1",
+]
+
+[tool.uv.sources]
+finemo = { git = "https://github.com/austintwang/finemo_gpu.git" }
+torch = { index = "pytorch-cu121" }
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
