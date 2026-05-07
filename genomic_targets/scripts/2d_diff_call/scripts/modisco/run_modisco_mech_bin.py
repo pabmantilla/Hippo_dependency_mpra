@@ -1,9 +1,9 @@
-"""TF-MoDISco on one mech-axis bin (equal split into N_BINS contiguous slices
-ordered by per-ct cossim of importance, z-scored).
+"""TF-MoDISco on one mech-axis bin.
 
 argv[1] = ct (K562 | HepG2)
 argv[2] = bin_idx (0 .. n_bins-1)
 argv[3] = n_bins (default 10)
+argv[4] = mode  (eqc = equal-count quantiles | eqw = equal-width along cossim; default eqc)
 """
 import json, os, sys
 import numpy as np
@@ -19,19 +19,22 @@ CT_ALL = {'K562': 'K562_v6_do075', 'HepG2': 'HepG2_v6_do03'}
 ct       = sys.argv[1]
 bin_idx  = int(sys.argv[2])
 n_bins   = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+mode     = sys.argv[4] if len(sys.argv) > 4 else 'eqc'
 assert ct in CT_ALL
 assert 0 <= bin_idx < n_bins
+assert mode in ('eqc', 'eqw')
 
 ENH      = ENHANCER_LEN
 OUT_ROOT = os.path.join(REPO, 'genomic_targets/data/mech_bins')
-BIN_DIR  = os.path.join(OUT_ROOT, ct, f'n{n_bins}', f'bin_{bin_idx:03d}')
+TAG      = f'n{n_bins}' if mode == 'eqc' else f'eqw_n{n_bins}'
+BIN_DIR  = os.path.join(OUT_ROOT, ct, TAG, f'bin_{bin_idx:03d}')
 H5       = os.path.join(BIN_DIR, 'modisco.h5')
 META     = os.path.join(BIN_DIR, 'meta.json')
 IDX_NPY  = os.path.join(BIN_DIR, 'indices.npy')
 os.makedirs(BIN_DIR, exist_ok=True)
 
-if os.path.exists(H5) and os.path.exists(META):
-    print(f'{ct} bin {bin_idx}: cached -> {H5}', flush=True)
+if os.path.exists(META):
+    print(f'{ct} bin {bin_idx}: cached -> {BIN_DIR}', flush=True)
     sys.exit(0)
 
 CT = CT_ALL
@@ -56,37 +59,63 @@ for c in CT:
     em.importance[c] = em.attr[c].sum(axis=1)
 
 cossim = em.cosine_similarity(mode='importance', zscore=True)
-fin = np.isfinite(cossim)
-order = np.argsort(np.where(fin, cossim, np.nan), kind='stable')
-order = order[~np.isnan(np.take(np.where(fin, cossim, np.nan), order))]
-n = len(order)
-edges = [int(round(i * n / n_bins)) for i in range(n_bins + 1)]
-sel = np.sort(order[edges[bin_idx]:edges[bin_idx + 1]])
+fin    = np.isfinite(cossim)
 
-cossim_lo = float(cossim[sel].min())
-cossim_hi = float(cossim[sel].max())
-print(f'{ct} bin {bin_idx}/{n_bins}: n={len(sel)}/{n}  '
-      f'cossim [{cossim_lo:+.3f}, {cossim_hi:+.3f}]   '
+if mode == 'eqc':
+    order = np.argsort(np.where(fin, cossim, np.nan), kind='stable')
+    order = order[~np.isnan(np.take(np.where(fin, cossim, np.nan), order))]
+    n = len(order)
+    edges = [int(round(i * n / n_bins)) for i in range(n_bins + 1)]
+    sel = np.sort(order[edges[bin_idx]:edges[bin_idx + 1]])
+    edge_lo = float(cossim[sel].min()) if len(sel) else float('nan')
+    edge_hi = float(cossim[sel].max()) if len(sel) else float('nan')
+else:  # eqw — equal-width slices of cossim range
+    lo, hi = float(np.nanmin(cossim[fin])), float(np.nanmax(cossim[fin]))
+    edges  = np.linspace(lo, hi, n_bins + 1)
+    e0, e1 = float(edges[bin_idx]), float(edges[bin_idx + 1])
+    if bin_idx == n_bins - 1:
+        mask = fin & (cossim >= e0) & (cossim <= e1)
+    else:
+        mask = fin & (cossim >= e0) & (cossim <  e1)
+    sel = np.sort(np.where(mask)[0])
+    n = int(fin.sum())
+    edge_lo, edge_hi = e0, e1
+
+cossim_lo = float(cossim[sel].min()) if len(sel) else float('nan')
+cossim_hi = float(cossim[sel].max()) if len(sel) else float('nan')
+print(f'{ct} {mode} bin {bin_idx}/{n_bins}: n={len(sel)}/{n}  '
+      f'edge=[{edge_lo:+.3f},{edge_hi:+.3f}]  '
+      f'data=[{cossim_lo:+.3f},{cossim_hi:+.3f}]   '
       f'OMP={os.environ.get("OMP_NUM_THREADS")}', flush=True)
 
-hyp_ct = raw[f'attr_{ct}'][:n_full][keep]
-hyp = hyp_ct[sel, :, :ENH].transpose(0, 2, 1).astype(np.float32)
-oh  = ohe[sel,    :, :ENH].transpose(0, 2, 1).astype(np.float32)
-pos, neg = TFMoDISco(hypothetical_contribs=hyp, one_hot=oh)
-save_hdf5(H5, pos, neg, window_size=21)
+MIN_SEQS = 100
+n_pos = n_neg = 0
+if len(sel) < MIN_SEQS:
+    print(f'  too few seqs ({len(sel)} < {MIN_SEQS}); skipping TFMoDISco', flush=True)
+else:
+    hyp_ct = raw[f'attr_{ct}'][:n_full][keep]
+    hyp = hyp_ct[sel, :, :ENH].transpose(0, 2, 1).astype(np.float32)
+    oh  = ohe[sel,    :, :ENH].transpose(0, 2, 1).astype(np.float32)
+    pos, neg = TFMoDISco(hypothetical_contribs=hyp, one_hot=oh)
+    save_hdf5(H5, pos, neg, window_size=21)
+    n_pos, n_neg = len(pos or []), len(neg or [])
 
 np.save(IDX_NPY, sel)
 with open(META, 'w') as f:
     json.dump({
         'ct': ct,
+        'mode': mode,
         'bin_idx': bin_idx,
         'n_bins': n_bins,
         'n_seqs': int(len(sel)),
         'n_total': int(n),
+        'edge_lo': edge_lo,
+        'edge_hi': edge_hi,
         'cossim_lo': cossim_lo,
         'cossim_hi': cossim_hi,
         'enh_len': ENH,
-        'n_pos': len(pos or []),
-        'n_neg': len(neg or []),
+        'n_pos': n_pos,
+        'n_neg': n_neg,
+        'skipped_modisco': len(sel) < MIN_SEQS,
     }, f, indent=2)
-print(f'{ct} bin {bin_idx}: pos={len(pos or [])} neg={len(neg or [])} -> {H5}', flush=True)
+print(f'{ct} bin {bin_idx}: pos={n_pos} neg={n_neg} -> {BIN_DIR}', flush=True)
